@@ -43,30 +43,8 @@ public class LookSettings extends SettingsPanel {
         lafDef.put("aero", "Aero");
         lafDef.put("fast", "Fast");
         lafDef.put("luna", "Luna");
-        lafDef.put("flatlaf-ij-arc", "flatlaf-ij-arc");
-        lafDef.put("flatlaf-ij-orange", "flatlaf-ij-orange");
-        lafDef.put("flatlaf-ij-cyan", "flatlaf-ij-cyan");
-        lafDef.put("flatlaf-ij-dark", "flatlaf-ij-dark");
-        lafDef.put("flatlaf-ij-dark-purple", "flatlaf-ij-dark-purple");
-        lafDef.put("flatlaf-ij-dracula", "flatlaf-ij-dracula");
-        lafDef.put("flatlaf-ij-gradianto-fuchsia", "flatlaf-ij-gradianto-fuchsia");
-        lafDef.put("flatlaf-ij-gradianto-deep-ocean", "flatlaf-ij-gradianto-deep-ocean");
-        lafDef.put("flatlaf-ij-gradianto-midnight-blue", "flatlaf-ij-gradianto-midnight-blue");
-        lafDef.put("flatlaf-ij-gray", "flatlaf-ij-gray");
-        lafDef.put("flatlaf-ij-gruvbox-dark-hard", "flatlaf-ij-gruvbox-dark-hard");
-        lafDef.put("flatlaf-ij-gruvbox-dark-medium", "flatlaf-ij-gruvbox-dark-medium");
-        lafDef.put("flatlaf-ij-gruvbox-dark-soft", "flatlaf-ij-gruvbox-dark-soft");
-        lafDef.put("flatlaf-ij-hiberbee-dark", "flatlaf-ij-hiberbee-dark");
-        lafDef.put("flatlaf-ij-high-contrast", "flatlaf-ij-high-contrast");
-        lafDef.put("flatlaf-ij-light", "flatlaf-ij-light");
-        lafDef.put("flatlaf-ij-material-dark", "flatlaf-ij-material-dark");
-        lafDef.put("flatlaf-ij-monocai", "flatlaf-ij-monocai");
-        lafDef.put("flatlaf-ij-nord", "flatlaf-ij-nord");
-        lafDef.put("flatlaf-ij-one-dark", "flatlaf-ij-one-dark");
-        lafDef.put("flatlaf-ij-solarized-dark", "flatlaf-ij-solarized-dark");
-        lafDef.put("flatlaf-ij-solarized-light", "flatlaf-ij-solarized-light");
-        lafDef.put("flatlaf-ij-spacegray", "flatlaf-ij-spacegray");
-        lafDef.put("flatlaf-ij-vuesion", "flatlaf-ij-vuesion");
+        LaF.flatLafThemes.forEach((k, v) -> lafDef.put(k, k.startsWith("flatlaf-") ? k.substring(8) : k));
+
         ComboStringSetting laf = new ComboStringSetting(lafDef);
         d.addStringSetting("laf", laf);
         

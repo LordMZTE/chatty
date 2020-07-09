@@ -15,10 +15,7 @@ import com.jtattoo.plaf.luna.LunaLookAndFeel;
 import com.jtattoo.plaf.mint.MintLookAndFeel;
 import com.jtattoo.plaf.noire.NoireLookAndFeel;
 import java.awt.Color;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.logging.Logger;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
@@ -42,6 +39,7 @@ public class LaF {
     private static Color tabForegroundUnread = new Color(200,0,0);
     private static Color tabForegroundHighlight = new Color(255,80,0);
     private static Border inputBorder;
+    public static Map<String, String> flatLafThemes = new HashMap<>();
     
     public static String getLinkColor() {
         return linkColor;
@@ -68,6 +66,32 @@ public class LaF {
             "laf", "lafTheme", "lafScroll", "lafForeground", "lafBackground",
             "lafStyle", "lafCustomTheme", "lafGradient", "lafVariant"});
         return settingNames.contains(settingName);
+    }
+    static {
+        flatLafThemes.put("flatlaf-ij-arc", "com.formdev.flatlaf.intellijthemes.FlatArcIJTheme");
+        flatLafThemes.put("flatlaf-ij-orange", "com.formdev.flatlaf.intellijthemes.FlatArcOrangeIJTheme");
+        flatLafThemes.put("flatlaf-ij-cyan", "com.formdev.flatlaf.intellijthemes.FlatCyanLightIJTheme");
+        flatLafThemes.put("flatlaf-ij-dark", "com.formdev.flatlaf.intellijthemes.FlatDarkFlatIJTheme");
+        flatLafThemes.put("flatlaf-ij-dark-purple", "com.formdev.flatlaf.intellijthemes.FlatDarkPurpleIJTheme");
+        flatLafThemes.put("flatlaf-ij-dracula", "com.formdev.flatlaf.intellijthemes.FlatDraculaIJTheme");
+        flatLafThemes.put("flatlaf-ij-gradianto-fuchsia", "com.formdev.flatlaf.intellijthemes.FlatGradiantoDarkFuchsiaIJTheme");
+        flatLafThemes.put("flatlaf-ij-gradianto-deep-ocean", "com.formdev.flatlaf.intellijthemes.FlatGradiantoDeepOceanIJTheme");
+        flatLafThemes.put("flatlaf-ij-gradianto-midnight-blue", "com.formdev.flatlaf.intellijthemes.FlatGradiantoMidnightBlueIJTheme");
+        flatLafThemes.put("flatlaf-ij-gray", "com.formdev.flatlaf.intellijthemes.FlatGrayIJTheme");
+        flatLafThemes.put("flatlaf-ij-gruvbox-dark-hard", "com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkHardIJTheme");
+        flatLafThemes.put("flatlaf-ij-gruvbox-dark-medium", "com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkMediumIJTheme");
+        flatLafThemes.put("flatlaf-ij-gruvbox-dark-soft", "com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkSoftIJTheme");
+        flatLafThemes.put("flatlaf-ij-hiberbee-dark", "com.formdev.flatlaf.intellijthemes.FlatHiberbeeDarkIJTheme");
+        flatLafThemes.put("flatlaf-ij-high-contrast", "com.formdev.flatlaf.intellijthemes.FlatHighContrastIJTheme");
+        flatLafThemes.put("flatlaf-ij-light", "com.formdev.flatlaf.intellijthemes.FlatLightFlatIJTheme");
+        flatLafThemes.put("flatlaf-ij-material-dark", "com.formdev.flatlaf.intellijthemes.FlatMaterialDesignDarkIJTheme");
+        flatLafThemes.put("flatlaf-ij-monocai", "com.formdev.flatlaf.intellijthemes.FlatMonocaiIJTheme");
+        flatLafThemes.put("flatlaf-ij-nord", "com.formdev.flatlaf.intellijthemes.FlatNordIJTheme");
+        flatLafThemes.put("flatlaf-ij-one-dark", "com.formdev.flatlaf.intellijthemes.FlatOneDarkIJTheme");
+        flatLafThemes.put("flatlaf-ij-solarized-dark", "com.formdev.flatlaf.intellijthemes.FlatSolarizedDarkIJTheme");
+        flatLafThemes.put("flatlaf-ij-solarized-light", "com.formdev.flatlaf.intellijthemes.FlatSolarizedLightIJTheme");
+        flatLafThemes.put("flatlaf-ij-spacegray", "com.formdev.flatlaf.intellijthemes.FlatSpacegrayIJTheme");
+        flatLafThemes.put("flatlaf-ij-vuesion", "com.formdev.flatlaf.intellijthemes.FlatVuesionIJTheme");
     }
     
     public static class LaFSettings {
@@ -208,102 +232,6 @@ public class LaF {
                         LunaLookAndFeel.setCurrentTheme(addCustom(prepareTheme(
                                 LunaLookAndFeel.getThemeProperties(theme))));
                         break;
-                    case "flatlaf-ij-arc":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatArcIJTheme";
-                        break;
-
-                    case "flatlaf-ij-orange":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatArcOrangeIJTheme";
-                        break;
-
-                    case "flatlaf-ij-cyan":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatCyanLightIJTheme";
-                        break;
-
-                    case "flatlaf-ij-dark":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatDarkFlatIJTheme";
-                        break;
-
-                    case "flatlaf-ij-dark-purple":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatDarkPurpleIJTheme";
-                        break;
-
-                    case "flatlaf-ij-dracula":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatDraculaIJTheme";
-                        break;
-
-                    case "flatlaf-ij-gradianto-fuchsia":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatGradiantoDarkFuchsiaIJTheme";
-                        break;
-
-                    case "flatlaf-ij-gradianto-deep-ocean":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatGradiantoDeepOceanIJTheme";
-                        break;
-
-                    case "flatlaf-ij-gradianto-midnight-blue":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatGradiantoMidnightBlueIJTheme";
-                        break;
-
-                    case "flatlaf-ij-gray":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatGrayIJTheme";
-                        break;
-
-                    case "flatlaf-ij-gruvbox-dark-hard":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkHardIJTheme";
-                        break;
-
-                    case "flatlaf-ij-gruvbox-dark-medium":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkMediumIJTheme";
-                        break;
-
-                    case "flatlaf-ij-gruvbox-dark-soft":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkSoftIJTheme";
-                        break;
-
-                    case "flatlaf-ij-hiberbee-dark":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatHiberbeeDarkIJTheme";
-                        break;
-
-                    case "flatlaf-ij-high-contrast":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatHighContrastIJTheme";
-                        break;
-
-                    case "flatlaf-ij-light":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatLightFlatIJTheme";
-                        break;
-
-                    case "flatlaf-ij-material-dark":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatMaterialDesignDarkIJTheme";
-                        break;
-
-                    case "flatlaf-ij-monocai":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatMonocaiIJTheme";
-                        break;
-
-                    case "flatlaf-ij-nord":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatNordIJTheme";
-                        break;
-
-                    case "flatlaf-ij-one-dark":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatOneDarkIJTheme";
-                        break;
-
-                    case "flatlaf-ij-solarized-dark":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatSolarizedDarkIJTheme";
-                        break;
-
-                    case "flatlaf-ij-solarized-light":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatSolarizedLightIJTheme";
-                        break;
-
-                    case "flatlaf-ij-spacegray":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatSpacegrayIJTheme";
-                        break;
-
-                    case "flatlaf-ij-vuesion":
-                        laf = "com.formdev.flatlaf.intellijthemes.FlatVuesionIJTheme";
-                        break;
-
                     case "nimbus":
                         for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                             if ("Nimbus".equals(info.getName())) {
@@ -313,7 +241,7 @@ public class LaF {
                         }
                         break;
                     default:
-                        laf = UIManager.getCrossPlatformLookAndFeelClassName();
+                        laf = flatLafThemes.containsKey(lafCode) ? flatLafThemes.get(lafCode) : UIManager.getCrossPlatformLookAndFeelClassName();
                         MetalLookAndFeel.setCurrentTheme(new OceanTheme());
                 }
             }
@@ -493,7 +421,6 @@ public class LaF {
     /**
      * Get a color from custom properties.
      * 
-     * @param properties
      * @param key
      * @param defaultValue
      * @return 
