@@ -353,10 +353,10 @@ public class LiveStreamsDialog extends JFrame {
         @Override
         public int compare(StreamInfo o1, StreamInfo o2) {
             if (o1.getViewers() > o2.getViewers()) {
-                return -1;
+                return 1;
             }
             if (o1.getViewers() < o2.getViewers()) {
-                return 1;
+                return -1;
             }
             return o1.getStream().compareTo(o2.getStream());
         } 

@@ -208,6 +208,102 @@ public class LaF {
                         LunaLookAndFeel.setCurrentTheme(addCustom(prepareTheme(
                                 LunaLookAndFeel.getThemeProperties(theme))));
                         break;
+                    case "flatlaf-ij-arc":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatArcIJTheme";
+                        break;
+
+                    case "flatlaf-ij-orange":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatArcOrangeIJTheme";
+                        break;
+
+                    case "flatlaf-ij-cyan":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatCyanLightIJTheme";
+                        break;
+
+                    case "flatlaf-ij-dark":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatDarkFlatIJTheme";
+                        break;
+
+                    case "flatlaf-ij-dark-purple":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatDarkPurpleIJTheme";
+                        break;
+
+                    case "flatlaf-ij-dracula":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatDraculaIJTheme";
+                        break;
+
+                    case "flatlaf-ij-gradianto-fuchsia":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatGradiantoDarkFuchsiaIJTheme";
+                        break;
+
+                    case "flatlaf-ij-gradianto-deep-ocean":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatGradiantoDeepOceanIJTheme";
+                        break;
+
+                    case "flatlaf-ij-gradianto-midnight-blue":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatGradiantoMidnightBlueIJTheme";
+                        break;
+
+                    case "flatlaf-ij-gray":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatGrayIJTheme";
+                        break;
+
+                    case "flatlaf-ij-gruvbox-dark-hard":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkHardIJTheme";
+                        break;
+
+                    case "flatlaf-ij-gruvbox-dark-medium":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkMediumIJTheme";
+                        break;
+
+                    case "flatlaf-ij-gruvbox-dark-soft":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkSoftIJTheme";
+                        break;
+
+                    case "flatlaf-ij-hiberbee-dark":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatHiberbeeDarkIJTheme";
+                        break;
+
+                    case "flatlaf-ij-high-contrast":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatHighContrastIJTheme";
+                        break;
+
+                    case "flatlaf-ij-light":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatLightFlatIJTheme";
+                        break;
+
+                    case "flatlaf-ij-material-dark":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatMaterialDesignDarkIJTheme";
+                        break;
+
+                    case "flatlaf-ij-monocai":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatMonocaiIJTheme";
+                        break;
+
+                    case "flatlaf-ij-nord":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatNordIJTheme";
+                        break;
+
+                    case "flatlaf-ij-one-dark":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatOneDarkIJTheme";
+                        break;
+
+                    case "flatlaf-ij-solarized-dark":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatSolarizedDarkIJTheme";
+                        break;
+
+                    case "flatlaf-ij-solarized-light":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatSolarizedLightIJTheme";
+                        break;
+
+                    case "flatlaf-ij-spacegray":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatSpacegrayIJTheme";
+                        break;
+
+                    case "flatlaf-ij-vuesion":
+                        laf = "com.formdev.flatlaf.intellijthemes.FlatVuesionIJTheme";
+                        break;
+
                     case "nimbus":
                         for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                             if ("Nimbus".equals(info.getName())) {
