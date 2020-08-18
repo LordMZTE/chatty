@@ -32,6 +32,7 @@ import chatty.util.BotNameManager;
 import chatty.util.DateTime;
 import chatty.util.Debugging;
 import chatty.util.EmoticonListener;
+import chatty.util.IconManager;
 import chatty.util.ffz.FrankerFaceZ;
 import chatty.util.ffz.FrankerFaceZListener;
 import chatty.util.ImageCache;
@@ -79,6 +80,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 
@@ -186,6 +188,7 @@ public class TwitchClient {
     private final IrcLogger ircLogger;
     
     private boolean fixServer = false;
+    private String launchCommand;
     
     public TwitchClient(Map<String, String> args) {
         // Logging
@@ -199,6 +202,10 @@ public class TwitchClient {
                 +" [Settings Directory] "+Chatty.getUserDataDirectory()
                 +" [Classpath] "+System.getProperty("java.class.path"));
         
+        if (Chatty.getOriginalWdir() != null) {
+            LOGGER.info("Working directory changed due to -appwdir (from: "+Chatty.getOriginalWdir()+")");
+        }
+        
         // Settings
         settingsManager = new SettingsManager();
         settings = settingsManager.settings;
@@ -210,6 +217,7 @@ public class TwitchClient {
         settingsManager.backupFiles();
         settingsManager.startAutoSave(this);
         
+        launchCommand = args.get("cc");
         Helper.setDefaultTimezone(settings.getString("timezone"));
         
         addressbook = new Addressbook(Chatty.getUserDataDirectory()+"addressbook",
@@ -224,6 +232,7 @@ public class TwitchClient {
         
         initDxSettings();
         
+        IconManager.setCustomIcons(settings.getList("icons"));
         if (settings.getBoolean("splash")) {
             Splash.initSplashScreen(Splash.getLocation((String)settings.mapGet("windows", "main")));
         }
@@ -393,6 +402,13 @@ public class TwitchClient {
         // Output any cached warning messages
         warning(null);
         
+        if (!settingsManager.checkSettingsDir()) {
+            warning("The settings directory could not be created, so Chatty"
+                    + " will not function correctly. Make sure that "+Chatty.getUserDataDirectory()
+                    + " is accessible or change it using launch options.");
+            return;
+        }
+        
         addCommands();
         g.addGuiCommands();
         
@@ -435,6 +451,9 @@ public class TwitchClient {
         }
         
         UserContextMenu.client = this;
+        
+        customCommandLaunch(launchCommand);
+        launchCommand = null;
     }
     
 
@@ -927,7 +946,7 @@ public class TwitchClient {
         commands.add("server", p -> {
             commandServer(p.getArgs());
         });
-        commands.add("reconnet", p -> commandReconnect());
+        commands.add("reconnect", p -> commandReconnect());
         commands.add("connection", p -> {
             g.printLine(p.getRoom(), c.getConnectionInfo());
         });
@@ -1617,6 +1636,25 @@ public class TwitchClient {
         } else {
             textInput(room, result, parameters);
         }
+    }
+    
+    public void customCommandLaunch(String commandAndParameters) {
+        if (StringUtil.isNullOrEmpty(commandAndParameters)) {
+            return;
+        }
+        LOGGER.info("Running launch command: "+commandAndParameters);
+        String[] split = commandAndParameters.split(" ", 2);
+        String commandName = split[0];
+        Parameters p;
+        if (split.length == 2) {
+            p = Parameters.create(split[1]);
+        }
+        else {
+            p = Parameters.create(null);
+        }
+        p.put("-cc", "true");
+        // Probably safer, since it access state from the GUI
+        SwingUtilities.invokeLater(() -> customCommand(g.getActiveRoom(), commandName, p));
     }
     
     public void customCommand(Room room, String command, Parameters parameters) {
@@ -3080,7 +3118,10 @@ public class TwitchClient {
         
         IrcLogger() {
             IRC_LOGGER.setUseParentHandlers(false);
-            IRC_LOGGER.addHandler(Logging.getIrcFileHandler());
+            FileHandler handler = Logging.getIrcFileHandler();
+            if (handler != null) {
+                IRC_LOGGER.addHandler(handler);
+            }
         }
         
         public void onRawReceived(String text) {

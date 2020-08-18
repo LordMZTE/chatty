@@ -17,6 +17,8 @@ import chatty.util.settings.Setting;
 import chatty.util.settings.Settings;
 import java.awt.Color;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Logger;
@@ -396,6 +398,7 @@ public class SettingsManager {
         settings.addBoolean("splash", true);
         settings.addBoolean("hideStreamsOnMinimize", true);
         settings.addLong("inputFocus", 0);
+        settings.addList("icons", new ArrayList<>(), Setting.STRING);
         
         // Tray
         settings.addBoolean("closeToTray", false);
@@ -576,7 +579,7 @@ public class SettingsManager {
         settings.addString("logMode", "always");
         settings.addBoolean("logMessage", true);
         settings.addString("logMessageTemplate", "$if(timestamp,$(timestamp) )<$(full-nick2)>$if(action,*) $(msg)");
-        settings.addBoolean("logMod", true);
+        settings.addBoolean("logMod", false);
         settings.addBoolean("logJoinPart", false);
         settings.addBoolean("logBan", true);
         settings.addBoolean("logDeleted", true);
@@ -916,6 +919,11 @@ public class SettingsManager {
 //            result.append(settings.settingValueToString(setting));
 //        }
 //        LOGGER.info(result.toString());
+    }
+    
+    public boolean checkSettingsDir() {
+        Path path = Paths.get(Chatty.getUserDataDirectory());
+        return Files.isDirectory(path);
     }
     
     private void addDefaultHotkey(String version, String id, String hotkey) {
