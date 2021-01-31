@@ -918,6 +918,15 @@ public class TwitchConnection {
                 changed = true;
             }
             
+            Map<String, String> badgeInfo = Helper.parseBadges(tags.get("badge-info"));
+            String subMonths = badgeInfo.get("subscriber");
+            if (subMonths == null) {
+                subMonths = badgeInfo.get("founder");
+            }
+            if (subMonths != null) {
+                user.setSubMonths(Helper.parseShort(subMonths, (short)0));
+            }
+            
             if (settings.getBoolean("ircv3CapitalizedNames")) {
                 if (user.setDisplayNick(StringUtil.trim(tags.get("display-name")))) {
                     changed = true;
@@ -1017,7 +1026,8 @@ public class TwitchConnection {
             if (this != irc) {
                 return;
             }
-            if (tags.isValue("msg-id", "whisper_invalid_login")) {
+            String msg_id = tags.get("msg-id");
+            if (msg_id != null && msg_id.startsWith("whisper_")) {
                 listener.onInfo(text);
             } else if (onChannel(channel)) {
                 infoMessage(channel, text, tags);
@@ -1135,14 +1145,29 @@ public class TwitchConnection {
             if (months == -1) {
                 months = tags.getInteger("msg-param-months", -1);
             }
+            int giftMonths = tags.getInteger("msg-param-gift-months", -1);
+            
             if (StringUtil.isNullOrEmpty(login, text)) {
                 return;
             }
             User user = userJoined(channel, login);
             updateUserFromTags(user, tags);
             if (tags.isValueOf("msg-id", "resub", "sub", "subgift", "anonsubgift")) {
+                text = text.trim();
+                if (giftMonths > 1 && !text.matches(".* gifted "+giftMonths+" .*")) {
+                    text += " It's a "+giftMonths+"-month gift!";
+                }
+                // There are still some types of notifications that don't have
+                // this info, and it might be useful
                 if (months > 1 && !text.matches(".*\\b"+months+"\\b.*")) {
-                    text += " They've subscribed for "+months+" months!";
+                    String recipient = tags.get("msg-param-recipient-display-name");
+                    if (StringUtil.isNullOrEmpty(recipient)) {
+                        recipient = "They've";
+                    }
+                    else {
+                        recipient += " has";
+                    }
+                    text += " "+recipient+" subscribed for "+months+" months!";
                 }
                 listener.onSubscriberNotification(user, text, message, months, tags);
             } else if (tags.isValue("msg-id", "charity") && login.equals("twitch")) {
@@ -1185,8 +1210,15 @@ public class TwitchConnection {
          * 
          * @param channel
          * @param text 
+         * @param tags The associated tags, may be empty (never null)
          */
         private void infoMessage(String channel, String text, MsgTags tags) {
+            if (tags.isValue("msg-id", "host_on")) {
+                String hostedChannel = channelStates.getState(channel).getHosting();
+                if (!StringUtil.isNullOrEmpty(hostedChannel)) {
+                    tags = MsgTags.addTag(tags, "chatty-hosted", hostedChannel);
+                }
+            }
             if (text.startsWith("The moderators of")) {
                 parseModeratorsList(text, channel);
             } else {
@@ -1375,7 +1407,8 @@ public class TwitchConnection {
                 String[] parameters = trailing.split(" ");
                 if (parameters.length == 2) {
                     String target = parameters[0];
-                    if (target.equals("-")) {
+                    // Unhosting should be "-", but just to be safe
+                    if (!Helper.isRegularChannel(target)) {
                         listener.onHost(rooms.getRoom(channel), null);
                         channelStates.setHosting(channel, null);
                     } else {
@@ -1408,7 +1441,7 @@ public class TwitchConnection {
                     if (tags.containsKey("followers-only")) {
                         channelStates.setFollowersOnly(channel, tags.get("followers-only"));
                     }
-                    if (!tags.isEmpty("room-id")) {
+                    if (tags.hasValue("room-id")) {
                         listener.onRoomId(channel, tags.get("room-id"));
                         if (Helper.isRegularChannel(channel)) {
                             // Set id for room (this should not run too often to
@@ -1472,6 +1505,7 @@ public class TwitchConnection {
 
     public User userJoined(User user) {
         if (user.setOnline(true)) {
+            user.setFirstSeen();
             if (user.getName().equals(user.getStream())) {
                 user.setBroadcaster(true);
             }

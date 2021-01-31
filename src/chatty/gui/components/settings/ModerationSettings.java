@@ -3,6 +3,8 @@ package chatty.gui.components.settings;
 
 import chatty.lang.Language;
 import java.awt.GridBagConstraints;
+import static java.awt.GridBagConstraints.EAST;
+import static java.awt.GridBagConstraints.WEST;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JCheckBox;
@@ -61,20 +63,18 @@ public class ModerationSettings extends SettingsPanel {
         userInfo.add(MessageSettings.createTimestampPanel(d, "userDialogTimestamp"),
                 d.makeGbc(0, 3, 2, 1, GridBagConstraints.WEST));
 
-        userInfo.add(new JLabel(Language.getString("settings.long.clearUserMessages.label")),
-                d.makeGbc(0, 4, 1, 1, GridBagConstraints.EAST));
-        userInfo.add(d.addComboLongSetting("clearUserMessages", new int[]{-1, 3, 6, 12, 24}),
-                d.makeGbc(1, 4, 1, 1, GridBagConstraints.WEST));
+        SettingsUtil.addLabeledComponent(userInfo, "settings.long.clearUserMessages.label", 0, 4, 1, EAST,
+                d.addComboLongSetting("clearUserMessages", new int[]{-1, 3, 6, 12, 24}));
+        
+        SettingsUtil.addLabeledComponent(userInfo, "userDialogMessageLimit", 0, 5, 1, EAST,
+                d.addSimpleLongSetting("userDialogMessageLimit", 3, true));
         
         HotkeyTextField banReasonsHotkey = new HotkeyTextField(12, null);
         d.addStringSetting("banReasonsHotkey", banReasonsHotkey);
-        userInfo.add(d.createLabel("banReasonsHotkey"),
-                d.makeGbc(0, 5, 1, 1, GridBagConstraints.WEST));
-        userInfo.add(banReasonsHotkey,
-                d.makeGbc(1, 5, 1, 1, GridBagConstraints.WEST));
+        SettingsUtil.addLabeledComponent(userInfo, "banReasonsHotkey", 0, 6, 1, EAST, banReasonsHotkey);
         
-        userInfo.add(d.createLabel("banReasonsInfo", true),
-                d.makeGbc(0, 6, 2, 1));
+        userInfo.add(SettingsUtil.createLabel("banReasonsInfo", true),
+                d.makeGbc(0, 7, 2, 1));
     }
     
 }

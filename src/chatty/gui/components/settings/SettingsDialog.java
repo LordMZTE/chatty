@@ -57,10 +57,10 @@ public class SettingsDialog extends JDialog implements ActionListener {
             "ffz", "nod3d", "noddraw",
             "userlistWidth", "userlistMinWidth", "userlistEnabled",
             "capitalizedNames", "correctlyCapitalizedNames", "ircv3CapitalizedNames",
-            "tabOrder", "tabsMwheelScrolling", "tabsMwheelScrollingAnywhere", "inputFont",
+            "inputFont",
             "bttvEmotes", "botNamesBTTV", "botNamesFFZ", "ffzEvent",
             "logPath", "logTimestamp", "logSplit", "logSubdirectories",
-            "tabsPlacement", "tabsLayout", "logLockFiles", "logMessageTemplate",
+            "logLockFiles", "logMessageTemplate",
             "laf", "lafTheme", "lafFontScale", "language", "timezone"
     ));
     
@@ -94,6 +94,8 @@ public class SettingsDialog extends JDialog implements ActionListener {
     private final ImageSettings imageSettings;
     private final HotkeySettings hotkeySettings;
     private final NameSettings nameSettings;
+    private final HighlightSettings highlightSettings;
+    private final IgnoreSettings ignoreSettings;
     
     public enum Page {
         MAIN("Main", Language.getString("settings.page.main")),
@@ -250,8 +252,10 @@ public class SettingsDialog extends JDialog implements ActionListener {
         cards.add(new LookSettings(this), Page.LOOK.name);
         cards.add(new FontSettings(this), Page.FONTS.name);
         cards.add(new ColorSettings(this, settings), Page.CHATCOLORS.name);
-        cards.add(new HighlightSettings(this), Page.HIGHLIGHT.name);
-        cards.add(new IgnoreSettings(this), Page.IGNORE.name);
+        highlightSettings = new HighlightSettings(this);
+        cards.add(highlightSettings, Page.HIGHLIGHT.name);
+        ignoreSettings = new IgnoreSettings(this);
+        cards.add(ignoreSettings, Page.IGNORE.name);
         cards.add(new FilterSettings(this), Page.FILTER.name);
         msgColorSettings = new MsgColorSettings(this);
         cards.add(msgColorSettings, Page.MSGCOLORS.name);
@@ -401,6 +405,15 @@ public class SettingsDialog extends JDialog implements ActionListener {
                     showPanel(Page.USERICONS);
                     Usericon icon = (Usericon)parameter;
                     imageSettings.addUsericonOfBadgeType(icon.type, icon.badgeType.id);
+                } else if (action.equals("selectHighlight")) {
+                    showPanel(Page.HIGHLIGHT);
+                    highlightSettings.selectItem((String) parameter);
+                } else if (action.equals("selectIgnore")) {
+                    showPanel(Page.IGNORE);
+                    ignoreSettings.selectItem((String) parameter);
+                } else if (action.equals("selectMsgColor")) {
+                    showPanel(Page.MSGCOLORS);
+                    msgColorSettings.selectItem((String) parameter);
                 }
             }
         });
@@ -596,12 +609,11 @@ public class SettingsDialog extends JDialog implements ActionListener {
         }
     }
     
-    
-    protected GridBagConstraints makeGbc(int x, int y, int w, int h) {
+    protected static GridBagConstraints makeGbc(int x, int y, int w, int h) {
         return makeGbc(x, y, w, h, GridBagConstraints.CENTER);
     }
     
-    protected GridBagConstraints makeGbc(int x, int y, int w, int h, int anchor) {
+    protected static GridBagConstraints makeGbc(int x, int y, int w, int h, int anchor) {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = x;
         gbc.gridy = y;
@@ -612,7 +624,7 @@ public class SettingsDialog extends JDialog implements ActionListener {
         return gbc;
     }
     
-    protected GridBagConstraints makeNoGapGbc(int x, int y, int w, int h, int anchor) {
+    protected static GridBagConstraints makeNoGapGbc(int x, int y, int w, int h, int anchor) {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = x;
         gbc.gridy = y;
@@ -623,7 +635,7 @@ public class SettingsDialog extends JDialog implements ActionListener {
         return gbc;
     }
     
-    protected GridBagConstraints makeGbcCloser(int x, int y, int w, int h, int anchor) {
+    protected static GridBagConstraints makeGbcCloser(int x, int y, int w, int h, int anchor) {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = x;
         gbc.gridy = y;
@@ -634,7 +646,7 @@ public class SettingsDialog extends JDialog implements ActionListener {
         return gbc;
     }
 
-    protected GridBagConstraints makeGbcSub(int x, int y, int w, int h, int anchor) {
+    protected static GridBagConstraints makeGbcSub(int x, int y, int w, int h, int anchor) {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = x;
         gbc.gridy = y;
@@ -647,6 +659,13 @@ public class SettingsDialog extends JDialog implements ActionListener {
     
     protected void addBooleanSetting(String name, BooleanSetting setting) {
         booleanSettings.put(name, setting);
+    }
+    
+    public Boolean getBooleanSettingValue(String name) {
+        if (booleanSettings.containsKey(name)) {
+            return booleanSettings.get(name).getSettingValue();
+        }
+        return null;
     }
     
     /**
@@ -876,39 +895,6 @@ public class SettingsDialog extends JDialog implements ActionListener {
         return table;
     }
     
-    protected JLabel createLabel(String settingName) {
-        return createLabel(settingName, false);
-    }
-    
-    protected JLabel createLabel(String settingName, boolean info) {
-        String text = Language.getString("settings.label."+settingName);
-        String tip = Language.getString("settings.label."+settingName+".tip", false);
-        JLabel label;
-        if (info) {
-            label = new JLabel(SettingConstants.HTML_PREFIX+text);
-        } else {
-            label = new JLabel(text);
-        }
-        label.setToolTipText(SettingsUtil.addTooltipLinebreaks(tip));
-        return label;
-    }
-    
-    protected JPanel createPanel(String settingName, JComponent... settingComponent) {
-        JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = makeGbc(0, 0, 1, 1);
-        // Make sure to only have space between the two components, since other
-        // spacing will be added when this panel is added to the layout
-        gbc.insets = new Insets(0, 0, 0, gbc.insets.right);
-        panel.add(createLabel(settingName), gbc);
-        gbc = makeGbc(1, 0, 1, 1);
-        gbc.insets = new Insets(0, gbc.insets.left, 0, 0);
-        for (JComponent comp : settingComponent) {
-            panel.add(comp, gbc);
-            gbc.gridx++;
-        }
-        return panel;
-    }
-    
     protected void clearHistory() {
         owner.clearHistory();
     }
@@ -940,6 +926,7 @@ public class SettingsDialog extends JDialog implements ActionListener {
     private void close() {
         owner.hotkeyManager.setEnabled(true);
         setVisible(false);
+        dispose();
     }
     
     protected LinkLabelListener getLinkLabelListener() {

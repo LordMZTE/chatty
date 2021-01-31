@@ -755,6 +755,15 @@ public class Helper {
         return Collections.unmodifiableMap(result);
     }
     
+    public static short parseShort(String input, short defaultValue) {
+        try {
+            return Short.parseShort(input);
+        }
+        catch (NumberFormatException ex) {
+            return defaultValue;
+        }
+    }
+    
     public static String makeDisplayNick(User user, long displayNamesMode) {
         if (user.hasCustomNickSet()) {
             return user.getFullNick();
@@ -816,7 +825,6 @@ public class Helper {
     }
     
     public static void addUserParameters(User user, String msgId, String autoModMsgId, Parameters parameters) {
-        parameters.put("nick", user.getRegularDisplayNick());
         if (msgId != null) {
             parameters.put("msg-id", msgId);
             parameters.put("msg", user.getMessageText(msgId));
@@ -827,23 +835,6 @@ public class Helper {
             if (autoModMsg != null) {
                 parameters.put("msg", autoModMsg);
             }
-        }
-        parameters.put("user-id", user.getId());
-        if (user.getTwitchBadges() != null) {
-            parameters.put("twitch-badge-info", user.getTwitchBadges().toString());
-            parameters.put("twitch-badges", Usericon.makeBadgeInfo(user.getTwitchBadges()));
-        }
-        parameters.put("display-nick", user.getDisplayNick());
-        parameters.put("custom-nick", user.getCustomNick());
-        parameters.put("full-nick", user.getFullNick());
-        if (!user.hasRegularDisplayNick()) {
-            parameters.put("display-nick2", user.getDisplayNick()+" ("+user.getRegularDisplayNick()+")");
-            parameters.put("full-nick2", user.getFullNick()+" ("+user.getRegularDisplayNick()+")");
-            parameters.put("special-nick", "true");
-        }
-        else {
-            parameters.put("display-nick2", user.getDisplayNick());
-            parameters.put("full-nick2", user.getFullNick());
         }
         parameters.putObject("user", user);
     }

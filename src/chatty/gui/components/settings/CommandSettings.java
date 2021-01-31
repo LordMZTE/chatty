@@ -146,7 +146,7 @@ public class CommandSettings extends SettingsPanel {
     
     private void addSetting(String settingName, String infoName, int y, JPanel panel, Editor.Tester tester) {
         GridBagConstraints gbc;
-        JLabel label = d.createLabel(settingName);
+        JLabel label = SettingsUtil.createLabel(settingName);
         gbc = d.makeGbc(0, y, 1, 1);
         gbc.anchor = GridBagConstraints.EAST;
         panel.add(label, gbc);
@@ -155,6 +155,7 @@ public class CommandSettings extends SettingsPanel {
         EditorStringSetting setting = d.addEditorStringSetting(
                 settingName, 20, true, label.getText(), true,
                 getInfo(infoName), tester);
+        label.setLabelFor(setting);
         setting.setLinkLabelListener(d.getLinkLabelListener());
         panel.add(setting, gbc);
     }
@@ -184,6 +185,9 @@ public class CommandSettings extends SettingsPanel {
     }
     
     public static String formatCommandInfo(String input) {
+        if (input == null) {
+            return "<em>Empty</em>";
+        }
         return Helper.htmlspecialchars_encode(input)
                 .replace("\n", "<br>").replace(" ", "&nbsp;");
     }

@@ -152,6 +152,9 @@
         <li><code>$color:&lt;color code or name&gt;</code> - A Html color code or name (names
             as hardcoded into Chatty, may be different from other programs), e.g. <code>$color:Blue</code> for blue,
             which can be used to replace colors</li>
+        <li><code>$defaultColor</code> - Users that don't have a color set and have the default assigned color (somewhat random)</li>
+        <li><code>$m:&lt;item&gt;</code> - Specify user-related <a href="#Highlight_Meta_Matching">Highlight Matching</a> prefixes, such as
+            <code>$m:config:b|partner</code> to match users with a partner badge</li>
     </ul>
     
     <p>The order of the
@@ -229,11 +232,16 @@
         <dt>Restriction</dt>
         <dd>This is similiar to the <a href="#Usercolors">Usercolors</a> settings,
         where you can enter special restrictions the user has to match in order
-        for the icon to be displayed. What makes the most sense in this case is
-        probably just entering a username (e.g. <code>serenity</code>) or an
-        addressbook category (e.g. <code>$cat:vip</code>, which would refer to
-        the category <code>vip</code>). If you keep this empty, then no restriction
+        for the icon to be displayed. If you keep this empty, then no restriction
         is applied.</dd>
+        <dd>The most common restrictions would be (although most <a href="#Usercolors">Usercolors</a>
+            restrictions should work):
+            <ul>
+                <li>Just the username (e.g. <code>serenity</code>)</li>
+                <li>An addressbook category (e.g. <code>$cat:vip</code>, which would refer to
+        the category <code>vip</code>)</li>
+            </ul>
+        </dd>
         <dd>Specifying a <em>Type</em> other than <code>Addon</code> carries an
         implicit restriction, since e.g. the default moderator icons are only
         displayed if the user is a moderator.</dd>
@@ -851,8 +859,8 @@
             it always tries to match the entire username. Example:
             <code>reuser:(?i)a.*</code> would match all names starting with "a".</li>
         <li><code>cat:</code> - One or several (comma separated) <a href="help.html#addressbook">Addressbook</a>
-            categories. The user who send the message must be in at least on of them.
-            Example: <code>cat:friends,family</code></li>
+            categories. The user who send the message must be in at least one of them.
+            Example: <code>cat:friends,family</code> (the user must be in "friends" or "family", or both)</li>
         <li><code>!cat:</code> - One or several Addressbook categories.
             The user who send the message must <em>not</em> be in at least one of them.</li>
         <li><code>chan:</code> - One or several channels the message must
@@ -862,12 +870,18 @@
         <li><code>chanCat:</code> - One or several <a href="help.html#addressbook">Addressbook</a>
             categories. The channel the message was send in must be in at least
             one of those categories (added to the Addressbook with the name of
-            the channel, including leading #).</li>
+            the channel, including leading #, e.g. <code>#esl_csgo</code>).</li>
         <li><code>!chanCat:</code> - One or several Addressbook categories. The
             channel the message was send in must <em>not</em> be in at least one
             of them. Example: <code>!chanCat:modding,important</code> (if
             channel has both, the match fails), <code>!chanCat:modding !chanCat:important</code>
             (if channel has one or both, the match fails)</li>
+        <li><code>chanCat2:</code> / <code>!chanCat2:</code> - Same as <code>chanCat:</code> / <code>!chanCat:</code>,
+            except that it looks up the channel in the Addressbook both in the
+            channel and user format. Example: <code>chanCat2:abc</code> in the
+            channel #joshimuz will look for the <code>abc</code> category under
+            both <code>#joshimuz</code> and <code>joshimuz</code> as if they
+            were one.</li>
         <li><code>status:</code> to specify that the user has to have one of the
             given status codes (case-sensitive):
             <ul>
@@ -1186,6 +1200,10 @@
         whitelist</li>
         <li><strong>off</strong> - Log no channels whatsoever</li>
     </ul>
+    
+    <p><em>Tip:</em> Add <code>$_whisper_</code> to the whitelist or blacklist
+        to affect all whispers that are output in the "One Window" tab or
+        "Per User" tabs.</p>
     
     <h3>Other Settings</h3>
     <dl class="dl-settings">
@@ -1718,7 +1736,7 @@
     and <code>/get port</code>.</p>
     
     <h3>Login Settings</h3>
-    <p>Manage the actual login data under <code>Main Menu - Login..</code>.</p>
+    <p>Manage the actual login data under <code>Main Menu - Account</code>.</p>
     
     <dl class="dl-settings">
         <dt>Allow <code>-token</code> parameter to override existing token</dt>
@@ -1726,14 +1744,14 @@
             the <code>-token</code> parameter sets the login token used in
             Chatty. If a token is already saved in Chatty, then the <code>-token</code>
             parameter will have no effect, unless this setting is enabled.</dd>
-        <dd>Overriding the token can be any issue if external programs like the
+        <dd>Overriding the token can be an issue if external programs like the
             Livestreamer GUI provide a token that has less access than the one
             already saved in Chatty (e.g. doesn't allow you to change your
             stream title).</dd>
         <dd>If the saved token is already marked as a token set through the
             <code>-token</code> parameter, then it will be overriden anyway.</dd>
         <dd>If a token set through the <code>-token</code> parameter is in use,
-            it will be shown as such in the <code>Main Menu - Login..</code>
+            it will be shown as such in the <code>Main Menu - Account</code>
             dialog.</dd>
     </dl>
     

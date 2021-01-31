@@ -3,7 +3,6 @@ package chatty.gui;
 
 import chatty.Helper;
 import chatty.gui.components.textpane.ChannelTextPane;
-import chatty.lang.Language;
 import chatty.util.Debugging;
 import chatty.util.MiscUtil;
 import chatty.util.ProcessManager;
@@ -57,7 +56,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JRootPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
@@ -128,17 +126,7 @@ public class GuiUtil {
         JOptionPane p = new JOptionPane(message, messageType, optionType);
         p.setOptions(options);
         final JDialog d = p.createDialog(parent, title);
-        d.setAutoRequestFocus(false);
-        d.setFocusableWindowState(false);
-        // Make focusable after showing the dialog, so that it can be focused
-        // by the user, but doesn't steal focus from the user when it opens.
-        SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                d.setFocusableWindowState(true);
-            }
-        });
+        setNonAutoFocus(d);
         d.setVisible(true);
         // Find index of result
         Object value = p.getValue();
@@ -148,6 +136,22 @@ public class GuiUtil {
             }
         }
         return -1;
+    }
+    
+    /**
+     * Configure the given window to not take focus immediately. It will be
+     * able to take focus afterwards.
+     * 
+     * @param w 
+     */
+    public static void setNonAutoFocus(Window w) {
+        w.setAutoRequestFocus(false);
+        w.setFocusableWindowState(false);
+        // Make focusable after showing the dialog, so that it can be focused
+        // by the user, but doesn't steal focus from the user when it opens.
+        SwingUtilities.invokeLater(() -> {
+            w.setFocusableWindowState(true);
+        });
     }
     
     public static void showNonModalMessage(Component parent, String title, String message, int type) {
@@ -630,6 +634,11 @@ public class GuiUtil {
         });
     }
     
+    public static void resetFocusTraversalKeys(Component comp) {
+        comp.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, null);
+        comp.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, null);
+    }
+    
     public static void focusTest() {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addVetoableChangeListener(new VetoableChangeListener() {
 
@@ -731,6 +740,25 @@ public class GuiUtil {
         return new ImageIcon(Toolkit.getDefaultToolkit().createImage(o.getClass().getResource(name)));
     }
     
+    /**
+     * Combine the two given icons horizontally into a new icon.
+     * 
+     * @param a The left icon in the resulting icon
+     * @param b The right icon in the resulting icon
+     * @param space Space between the icons in pixels
+     * @return The new icon
+     */
+    public static ImageIcon combineIcons(ImageIcon a, ImageIcon b, int space) {
+        int width = a.getIconWidth() + b.getIconWidth() + space;
+        int height = Math.max(a.getIconHeight(), b.getIconHeight());
+        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = img.createGraphics();
+        g.drawImage(a.getImage(), 0, 0, null);
+        g.drawImage(b.getImage(), a.getIconWidth() + space, 0, null);
+        g.dispose();
+        return new ImageIcon(img);
+    }
+    
     public static ImageIcon createEmptyIcon(int width, int height) {
         BufferedImage res = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         return new ImageIcon(res);
@@ -781,6 +809,42 @@ public class GuiUtil {
         }
         g.dispose();
         return new ImageIcon(img);
+    }
+    
+    /**
+     * Run in the EDT, either by running it directly if already in the EDT or
+     * by using {@link SwingUtilities#invokeAndWait(Runnable)}.
+     * 
+     * @param runnable What to execute
+     * @param description Used for logging when an error occurs
+     */
+    public static void edtAndWait(Runnable runnable, String description) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            runnable.run();
+        }
+        else {
+            try {
+                SwingUtilities.invokeAndWait(runnable);
+            }
+            catch (Exception ex) {
+                LOGGER.warning("Failed to execute edtAndWait ("+description+"): "+ex);
+            }
+        }
+    }
+    
+    /**
+     * Run in the EDT, either by running it directly if already in the EDT or
+     * by using {@link SwingUtilities#invokeLater(Runnable)}.
+     * 
+     * @param runnable 
+     */
+    public static void edt(Runnable runnable) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            runnable.run();
+        }
+        else {
+            SwingUtilities.invokeLater(runnable);
+        }
     }
     
 }

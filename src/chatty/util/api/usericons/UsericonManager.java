@@ -430,6 +430,10 @@ public class UsericonManager {
             if (user.hasCategory(icon.category)) {
                 return true;
             }
+        } else if (icon.matchType == Usericon.MatchType.MATCH) {
+            if (icon.match.matches(user)) {
+                return true;
+            }
         } else if (icon.matchType == Usericon.MatchType.STATUS) {
             if (Helper.matchUserStatus(icon.restrictionValue, user)) {
                 return true;
@@ -444,7 +448,10 @@ public class UsericonManager {
     
     private boolean iconsMatchesAdvancedType(Usericon icon,
             Usericon.Type requestedType, String id, String version) {
-        if (icon.type == requestedType) {
+        if (icon.type == Type.ALL) {
+            return true;
+        }
+        else if (icon.type == requestedType) {
             if (icon.badgeType.matchesLenient(id, version)) {
                 return true;
             }

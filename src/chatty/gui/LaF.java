@@ -64,7 +64,8 @@ public class LaF {
     public static boolean shouldUpdate(String settingName) {
         List<String> settingNames = Arrays.asList(new String[]{
             "laf", "lafTheme", "lafScroll", "lafForeground", "lafBackground",
-            "lafStyle", "lafCustomTheme", "lafGradient", "lafVariant"});
+            "lafStyle", "lafCustomTheme", "lafGradient", "lafVariant",
+            "lafNativeWindow"});
         return settingNames.contains(settingName);
     }
     static {
@@ -106,10 +107,12 @@ public class LaF {
         public final int gradient;
         public final String scroll;
         public final int variant;
+        public final boolean nativeWindow;
         
         public LaFSettings(String lafCode, String theme, int fontScale,
                            Map<String, String> custom, Color fg, Color bg,
-                           String style, int gradient, String scroll, int variant) {
+                           String style, int gradient, String scroll, int variant,
+                           boolean nativeWindow) {
             this.lafCode = lafCode;
             this.theme = theme;
             this.fontScale = fontScale;
@@ -120,6 +123,7 @@ public class LaF {
             this.gradient = gradient;
             this.scroll = scroll;
             this.variant = variant;
+            this.nativeWindow = nativeWindow;
         }
         
         public static LaFSettings fromSettings(Settings settings) {
@@ -133,7 +137,8 @@ public class LaF {
             int variant = (int)(settings.getLong("lafVariant"));
             String scroll = settings.getString("lafScroll");
             Map<String, String> custom = settings.getMap("lafCustomTheme");
-            return new LaFSettings(lafCode, lafTheme, lafFontScale, custom, fg, bg, style, gradient, scroll, variant);
+            boolean nativeWindow = settings.getBoolean("lafNativeWindow");
+            return new LaFSettings(lafCode, lafTheme, lafFontScale, custom, fg, bg, style, gradient, scroll, variant, nativeWindow);
         }
         
         public static LaFSettings fromSettingsDialog(SettingsDialog d, Settings settings) {
@@ -147,7 +152,8 @@ public class LaF {
             int variant = ((Number)(d.getLongSetting("lafVariant"))).intValue();
             String scroll = d.getStringSetting("lafScroll");
             Map<String, String> custom = settings.getMap("lafCustomTheme");
-            return new LaFSettings(lafCode, lafTheme, lafFontScale, custom, fg, bg, style, gradient, scroll, variant);
+            boolean nativeWindow = d.getBooleanSettingValue("lafNativeWindow");
+            return new LaFSettings(lafCode, lafTheme, lafFontScale, custom, fg, bg, style, gradient, scroll, variant, nativeWindow);
         }
         
     }
@@ -384,6 +390,9 @@ public class LaF {
                     properties.put("macStyleScrollBar", "on");
                     break;
             }
+        }
+        if (settings.nativeWindow) {
+            properties.put("windowDecoration", "off");
         }
         return properties;
     }

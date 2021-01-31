@@ -135,14 +135,14 @@ Images / Other
 		dialog-warning.png, go-down.png, go-up.png, go-next.png,
 		go-previous.png, go-home.png, go-web.png,
 		image-icon.png, commandline.png, edit-copy.png, sort.png,
-		edit-all.png (edited)`
+		edit-all.png (edited), reply.png (edited)`
   * Source: <http://tango.freedesktop.org>/Tango_Icon_Library
   * License: Released into the Public Domain
 
 * Misc Icons from NUVOLA ICON THEME for KDE 3.x
 		by David Vignoni:
   * Files (in various folders): `edit.png, ok.png, no.png, colorpicker.png,
-		warning.png, download.png`
+		warning.png, download.png, game.png`
   * Source: <http://www.icon-king.com/projects/nuvola/>
   * License: LGPL
 	(for the license text see the LGPL file or

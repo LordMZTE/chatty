@@ -57,7 +57,7 @@ public class Chatty {
      * by points. May contain a single "b" for beta versions, which are counted
      * as older (so 0.8.7b4 is older than 0.8.7).
      */
-    public static final String VERSION = "0.13-b1"; // Remember changing the version in the help
+    public static final String VERSION = "0.14-b5"; // Remember changing the version in the help
     
     /**
      * Enable Version Checker (if you compile and distribute this yourself, you
@@ -273,6 +273,22 @@ public class Chatty {
     
     public static String getWorkingDirectory() {
         return System.getProperty("user.dir")+File.separator;
+    }
+    
+    /**
+     * Turns the given path into an absolute path by using the current working
+     * directory. This can be necessary if the "-appwdir" option was used, since
+     * setting the "user.dir" property doesn't necessarily affect the regular
+     * functions (such as Paths.get("test").toAbsolutePath()).
+     * 
+     * @param path
+     * @return The absolute path, or the given path if it is already absolute
+     */
+    public static Path toAbsolutePathWdir(Path path) {
+        if (path.isAbsolute()) {
+            return path;
+        }
+        return Paths.get(System.getProperty("user.dir"), path.toString());
     }
     
     public static String getSoundDirectory() {

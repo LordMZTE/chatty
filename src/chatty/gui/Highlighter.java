@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Logger;
@@ -47,6 +48,7 @@ public class Highlighter {
     private final List<HighlightItem> items = new ArrayList<>();
     private final List<HighlightItem> blacklistItems = new ArrayList<>();
     private HighlightItem usernameItem;
+    private HighlightItem lastMatchItem;
     private Color lastMatchColor;
     private Color lastMatchBackgroundColor;
     private boolean lastMatchNoNotification;
@@ -114,6 +116,25 @@ public class Highlighter {
     
     public void setHighlightNextMessages(boolean highlight) {
         this.highlightNextMessages = highlight;
+    }
+    
+    public HighlightItem getLastMatchItem() {
+        return lastMatchItem;
+    }
+    
+    /**
+     * Get the last match if it has a foreground and/or background color.
+     * 
+     * @return 
+     */
+    public HighlightItem getColorSource() {
+        if (lastMatchItem != null) {
+            boolean itemHasColor = lastMatchItem.getColor() != null || lastMatchItem.getBackgroundColor() != null;
+            if (itemHasColor) {
+                return lastMatchItem;
+            }
+        }
+        return null;
     }
     
     /**
@@ -190,6 +211,9 @@ public class Highlighter {
         Blacklist blacklist = null;
         if (!blacklistItems.isEmpty()) {
             blacklist = new Blacklist(type, text, channel, ab, user, localUser, tags, blacklistItems);
+            if (blacklist.block) {
+                return false;
+            }
         }
         
         /**
@@ -225,6 +249,7 @@ public class Highlighter {
     }
     
     private void fillLastMatchVariables(HighlightItem item, String text) {
+        lastMatchItem = item;
         lastMatchColor = item.getColor();
         lastMatchBackgroundColor = item.getBackgroundColor();
         lastMatchNoNotification = item.noNotification();
@@ -241,6 +266,7 @@ public class Highlighter {
      * some other situations.
      */
     public void resetLastMatchVariables() {
+        lastMatchItem = null;
         lastMatchColor = null;
         lastMatchBackgroundColor = null;
         lastMatchNoNotification = false;
@@ -366,6 +392,20 @@ public class Highlighter {
             matchItems.add(item);
         }
         
+        private void addChanCatItem(String info, Object infoData, BiFunction<String, Addressbook, Boolean> m) {
+            Item item = new Item(info, infoData) {
+
+                @Override
+                public boolean matches(String text, Blacklist blacklist, String channel, Addressbook ab, User user, User localUser, MsgTags tags) {
+                    if (channel == null || ab == null) {
+                        return false;
+                    }
+                    return m.apply(channel, ab);
+                }
+            };
+            matchItems.add(item);
+        }
+        
         private void addTagsItem(String info, Object infoData, Function<MsgTags, Boolean> m) {
             Item item = new Item(info, infoData) {
 
@@ -389,25 +429,54 @@ public class Highlighter {
             }
         };
         
+        //==========================
+        // Properties
+        //==========================
+        private Type appliesToType = Type.REGULAR;
         private final String raw;
         private final List<Item> matchItems = new ArrayList<>();
         private Pattern pattern;
         private List<HighlightItem> localBlacklistItems;
+        
+        //--------------------------
+        // Meta settings
+        //--------------------------
         private Color color;
         private Color backgroundColor;
         private boolean noNotification;
         private boolean noSound;
-        private Type appliesToType = Type.REGULAR;
-        // Replacement string for filtering parts of a message
-        private String replacement;
-        private Item failedItem;
         
+        /**
+         * Replacement string for filtering parts of a message
+         */
+        private String replacement;
+        
+        /**
+         * If this is a blacklist item, it should block all Highlights when
+         * matches.
+         */
+        private boolean blacklistBlock;
+        
+        //--------------------------
+        // Debugging
+        //--------------------------
+        private String textWithoutPrefix = "";
+        private boolean invalidRegexLog;
+        private String mainPrefix;
         private String error;
         private boolean patternWarning;
-        private String textWithoutPrefix = "";
-        private String mainPrefix;
         
-        private boolean invalidRegexLog;
+        //==========================
+        // State (per match)
+        //==========================
+        private Item failedItem;
+        /**
+         * A prevented match only means that at least one part of a text match
+         * failed due to the blacklist, it is mostly relevant as a reason if the
+         * overall match actually failed.
+         */
+        private boolean blacklistPreventedTextMatch;
+        private boolean blockedByBlacklist;
         
         private enum Status {
             MOD("m"), SUBSCRIBER("s"), BROADCASTER("b"), ADMIN("a"), STAFF("f"),
@@ -554,38 +623,48 @@ public class Highlighter {
                 }
                 else if (item.startsWith("chanCat:")) {
                     List<String> cats = parseStringListPrefix(item, "chanCat:", s -> s);
-                    matchItems.add(new Item("Channel Addressbook Category", cats) {
-
-                        @Override
-                        public boolean matches(String text, Blacklist blacklist, String channel, Addressbook ab, User user, User localUser, MsgTags tags) {
-                            if (channel == null || ab == null) {
-                                return false;
+                    addChanCatItem("Channel Addressbook Category", cats, (channel, ab) -> {
+                        for (String cat : cats) {
+                            if (ab.hasCategory(channel, cat)) {
+                                return true;
                             }
-                            for (String cat : cats) {
-                                if (ab.hasCategory(channel, cat)) {
-                                    return true;
-                                }
-                            }
-                            return false;
                         }
+                        return false;
                     });
                 }
                 else if (item.startsWith("!chanCat:")) {
                     List<String> cats = parseStringListPrefix(item, "!chanCat:", s -> s);
-                    matchItems.add(new Item("Not Channel Addressbook Category", cats) {
-
-                        @Override
-                        public boolean matches(String text, Blacklist blacklist, String channel, Addressbook ab, User user, User localUser, MsgTags tags) {
-                            if (channel == null || ab == null) {
-                                return false;
+                    addChanCatItem("Not Channel Addressbook Category", cats, (channel, ab) -> {
+                        for (String cat : cats) {
+                            if (!ab.hasCategory(channel, cat)) {
+                                return true;
                             }
-                            for (String cat : cats) {
-                                if (!ab.hasCategory(channel, cat)) {
-                                    return true;
-                                }
-                            }
-                            return false;
                         }
+                        return false;
+                    });
+                }
+                else if (item.startsWith("chanCat2:")) {
+                    List<String> cats = parseStringListPrefix(item, "chanCat2:", s -> s);
+                    addChanCatItem("Channel/User Addressbook Category", cats, (channel, ab) -> {
+                        String stream = Helper.toStream(channel);
+                        for (String cat : cats) {
+                            if (ab.hasCategory(channel, cat) || ab.hasCategory(stream, cat)) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+                }
+                else if (item.startsWith("!chanCat2:")) {
+                    List<String> cats = parseStringListPrefix(item, "!chanCat2:", s -> s);
+                    addChanCatItem("Not Channel/User Addressbook Category", cats, (channel, ab) -> {
+                        String stream = Helper.toStream(channel);
+                        for (String cat : cats) {
+                            if (!ab.hasCategory(channel, cat) && !ab.hasCategory(stream, cat)) {
+                                return true;
+                            }
+                        }
+                        return false;
                     });
                 }
                 //--------------------------
@@ -611,6 +690,9 @@ public class Highlighter {
                         }
                         else if (part.equals("!notify")) {
                             noNotification = true;
+                        }
+                        else if (part.equals("block")) {
+                            blacklistBlock = true;
                         }
                         else if (part.equals("info")) {
                             appliesToType = Type.INFO;
@@ -877,8 +959,10 @@ public class Highlighter {
         private boolean findAdditionalPatternPrefix(String input, String type, String prefix) {
             String fullPrefix = type+prefix;
             if (input.startsWith(fullPrefix) && input.length() > fullPrefix.length()) {
+                boolean isPositiveMatch = type.equals("+"); // Negative match would be ! or +!
+                boolean isMainPrefix = !type.startsWith("+"); // Main prefix would only be !
                 String value;
-                if (type.startsWith("+")) {
+                if (!isMainPrefix) {
                     // Also continues parsing other prefixes
                     value = parsePrefix(input, fullPrefix);
                 }
@@ -889,7 +973,7 @@ public class Highlighter {
                 }
                 String completePattern = patternPrefixes.get(prefix).apply(value);
                 Pattern compiled = compilePattern(completePattern);
-                if (type.equals("+")) {
+                if (isPositiveMatch) {
                     matchItems.add(new Item("Additional regex (" + prefix.substring(0, prefix.length() - 1) + ")", compiled, true) {
 
                         @Override
@@ -903,6 +987,12 @@ public class Highlighter {
 
                         @Override
                         public boolean matches(String text, Blacklist blacklist, String channel, Addressbook ab, User user, User localUser, MsgTags tags) {
+                            /**
+                             * Don't use blacklist for negated matches, which could actually prevent
+                             * the negated match. A negated match already prevents matches, so it
+                             * probably wouldn't make much sense to apply the blacklist, which also
+                             * prevents matches.
+                             */
                             return !matchesPattern(text, compiled, null);
                         }
                     });
@@ -956,8 +1046,12 @@ public class Highlighter {
             try {
                 Matcher m = pattern.matcher(text);
                 while (m.find()) {
-                    if (blacklist == null || !blacklist.isBlacklisted(m.start(), m.end())) {
+                    boolean notBlacklisted = blacklist == null || !blacklist.isBlacklisted(m.start(), m.end());
+                    if (notBlacklisted) {
                         return true;
+                    }
+                    else {
+                        blacklistPreventedTextMatch = true;
                     }
                 }
             } catch (Exception ex) {
@@ -1141,6 +1235,10 @@ public class Highlighter {
             return matches(type, text, null, channel, ab, null, null, MsgTags.EMPTY);
         }
         
+        public boolean matches(User user) {
+            return matches(Type.ANY, "", null, null, null, user, null, MsgTags.EMPTY);
+        }
+        
         /**
          * Check whether a message matches this item.
          * 
@@ -1166,10 +1264,18 @@ public class Highlighter {
                 String channel, Addressbook ab, User user, User localUser,
                 MsgTags tags) {
             failedItem = null;
+            blacklistPreventedTextMatch = false;
+            blockedByBlacklist = false;
             
+            if (blacklist != null && blacklist.block) {
+                // This would only happen when using item individually, e.g. testing
+                blockedByBlacklist = true;
+                return false;
+            }
             if (localBlacklistItems != null) {
                 blacklist = Blacklist.addMatches(blacklist, text, localBlacklistItems);
             }
+            
             //------
             // Type
             //------
@@ -1281,6 +1387,10 @@ public class Highlighter {
             return !or;
         }
         
+        public String getRaw() {
+            return raw;
+        }
+        
         /**
          * Get the color defined for this entry, if any.
          * 
@@ -1306,6 +1416,12 @@ public class Highlighter {
             if (failedItem != null) {
                 return failedItem.toString();
             }
+            if (blockedByBlacklist) {
+                return "Blocked by blacklist";
+            }
+            if (blacklistPreventedTextMatch) {
+                return "Blacklist prevented text match";
+            }
             return null;
         }
         
@@ -1326,6 +1442,7 @@ public class Highlighter {
     public static class Blacklist {
         
         private final Collection<Match> blacklisted;
+        private final boolean block;
         
         /**
          * Creates the blacklist for a specific message, using the stored
@@ -1341,8 +1458,12 @@ public class Highlighter {
         public Blacklist(HighlightItem.Type type, String text, String channel,
                 Addressbook ab, User user, User localUser, MsgTags tags, Collection<HighlightItem> items) {
             blacklisted = new ArrayList<>();
+            boolean block = false;
             for (HighlightItem item : items) {
                 if (item.matches(type, text, null, channel, ab, user, localUser, tags)) {
+                    if (item.blacklistBlock) {
+                        block = true;
+                    }
                     List<Match> matches = item.getTextMatches(text);
                     if (matches != null) {
                         blacklisted.addAll(matches);
@@ -1351,10 +1472,12 @@ public class Highlighter {
                     }
                 }
             }
+            this.block = block;
         }
         
-        public Blacklist(Collection<Match> blacklisted) {
+        private Blacklist(Collection<Match> blacklisted) {
             this.blacklisted = blacklisted;
+            this.block = false;
         }
         
         public boolean isBlacklisted(int start, int end) {
@@ -1364,6 +1487,10 @@ public class Highlighter {
                 }
             }
             return false;
+        }
+        
+        public boolean doesBlock() {
+            return block;
         }
         
         @Override
@@ -1391,7 +1518,11 @@ public class Highlighter {
             if (items != null) {
                 for (HighlightItem item : items) {
                     List<Match> m = item.getTextMatches(text);
-                    matches.addAll(m);
+                    if (m != null) {
+                        matches.addAll(m);
+                    } else {
+                        matches.add(null);
+                    }
                 }
             }
             return new Blacklist(matches);
